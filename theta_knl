@@ -1,0 +1,13 @@
+Bootstrap: docker
+From: centos
+
+%post
+
+   pip install cloud-volume
+   pip install pandas mpi4py scipy tqdm Pillow
+    
+   mkdir /container
+   cd container
+   git clone https://github.com/Hanyu-Li/ffn/tree/tf2 -b tf2
+   cd ffn
+   pip install .
