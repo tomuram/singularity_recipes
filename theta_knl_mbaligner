@@ -1,40 +1,58 @@
-Bootstrap: docker
-From: nvidia/cuda:9.0-cudnn7-devel-centos7
+FROM python:3.9
 
-%help
-Centos7 with cuda9.0 cudnn7
+RUN apt-get update \
+    && apt-get install -y \
+        build-essential \
+        cmake \
+        git \
+        wget \
+        unzip \
+        yasm \
+        pkg-config \
+        libswscale-dev \
+        libtbb2 \
+        libtbb-dev \
+        libjpeg-dev \
+        libpng-dev \
+        libtiff-dev \
+        libavformat-dev \
+        libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-To start your container simply try
-singularity exec THIS_CONTAINER.simg bash
+RUN pip install numpy
 
-To use GPUs, try
-singularity exec --nv THIS_CONTAINER.simg bash
-
-
-%environment
-
-    # for system
-    export CUDA_DEVICE_ORDER=PCI_BUS_ID
-
-    # Add cupti to the path for profiling:
-    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda/extras/CUPTI/lib64
-
-    source scl_source enable devtoolset-4
-
-%post
-
-    # yum basics
-    yum update -y
-    yum install -y epel-release
-    yum install -y centos-release-scl
-    yum install -y devtoolset-4
-    yum install -y wget vim
-    yum install -y openssh-clients zip
-    yum install -y python-devel python-pip python-setuptools
-    #yum install -y hdf5
+WORKDIR /
+ENV OPENCV_VERSION="4.5.0"
+RUN wget https://github.com/opencv/opencv/archive/${OPENCV_VERSION}.zip \
+&& unzip ${OPENCV_VERSION}.zip \
+&& mkdir /opencv-${OPENCV_VERSION}/cmake_binary \
+&& cd /opencv-${OPENCV_VERSION}/cmake_binary \
+&& cmake -DBUILD_TIFF=ON \
+  -DBUILD_opencv_java=OFF \
+  -DWITH_CUDA=OFF \
+  -DWITH_OPENGL=ON \
+  -DWITH_OPENCL=ON \
+  -DWITH_IPP=ON \
+  -DWITH_TBB=ON \
+  -DWITH_EIGEN=ON \
+  -DWITH_V4L=ON \
+  -DBUILD_TESTS=OFF \
+  -DBUILD_PERF_TESTS=OFF \
+  -DCMAKE_BUILD_TYPE=RELEASE \
+  -DCMAKE_INSTALL_PREFIX=$(python3.9 -c "import sys; print(sys.prefix)") \
+  -DPYTHON_EXECUTABLE=$(which python3.9) \
+  -DPYTHON_INCLUDE_DIR=$(python3.9 -c "from distutils.sysconfig import get_python_inc; print(get_python_inc())") \
+  -DPYTHON_PACKAGES_PATH=$(python3.9 -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())") \
+  .. \
+&& make install \
+&& rm /${OPENCV_VERSION}.zip \
+&& rm -r /opencv-${OPENCV_VERSION}
+RUN ln -s \
+  /usr/local/python/cv2/python-3.9/cv2.cpython-37m-x86_64-linux-gnu.so \
+  /usr/local/lib/python3.9/site-packages/cv2.so
     
-    git clone https://github.com/adisuissa/mb_aligner.git
-    cd mb_aligner
-    python -m pip install -r requirements.txt
-    python setup.py develop
-    
+git clone https://github.com/adisuissa/mb_aligner.git
+cd mb_aligner
+python -m pip install -r requirements.txt
+python setup.py develop
+
