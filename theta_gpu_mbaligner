@@ -1,0 +1,41 @@
+Bootstrap: docker
+From: ubuntu:18.04
+
+%post
+  apt-get -y update
+  apt -y install python3-pip
+  apt -y install python3-numpy
+  apt -y install git
+
+  # required by rh-renderer
+  apt -y install pkg-config
+  DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends tzdata
+  apt -y install libopencv-dev
+  apt -y install python3-h5py
+
+
+  python3 -m pip install --upgrade pip
+  python3 -m pip install pyyaml
+  python3 -m pip install ujson==1.35
+  python3 -m pip install Cython
+  python3 -m pip install scipy
+
+  #apt install -y libgl1-mesa-glx
+  python3 -m pip install opencv-contrib-python
+
+
+  git clone https://github.com/tomuram/mb_aligner.git
+  cd mb_aligner
+  python3  -m pip install -r requirements.txt
+  python3 -m pip install 
+  python3 setup.py install
+  python3 setup.py develop
+
+
+  apt -y install python3-mpi4py
+  git clone https://github.com/Rhoana/tinyr
+  cd tinyr
+  unset CC
+  python3 setup.py install
+
+  # above here complete in current image
