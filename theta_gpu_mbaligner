@@ -20,7 +20,7 @@ From: ubuntu:18.04
   python3 -m pip install Cython
   python3 -m pip install scipy
 
-  #apt install -y libgl1-mesa-glx
+  apt install -y libgl1-mesa-glx
   python3 -m pip install opencv-contrib-python
 
 
